@@ -1,9 +1,10 @@
-extends Node
+extends Node2D
 
 onready var DEBUG_LABEL = preload("res://scenes/DebugLabel.tscn")
 
 onready var TILEMAP_LOGIC = $Logic
 onready var TILEMAP_DEBUG = $Debug
+onready var TILEMAP_DECOR = $Decor
 
 onready var MAP_WIDTH = TILEMAP_LOGIC.get_used_rect().size.x
 onready var MAP_HEIGHT = TILEMAP_LOGIC.get_used_rect().size.y
@@ -29,7 +30,7 @@ onready var DIRECTIONS = [
 
 func _ready():
 	randomize()
-	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
+#	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
 	generator_start()
 	pass
 	
@@ -48,7 +49,15 @@ func generator_start():
 	furnisher_place_object(TILEMAP_LOGIC, Vector2(2, 2))
 	furnisher_place_object(TILEMAP_LOGIC, Vector2(1, 1))
 	generator_add_passages(TILEMAP_LOGIC)
-	debug_print_rooms()
+#	debug_print_rooms()
+	TILEMAP_DECOR.decorate_level({
+		"TILE_FLOOR": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.FLOOR),
+		"TILE_WALL": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.WALL),
+		"TILE_ENTRANCE": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.ENTRANCE),
+		"TILE_EXIT": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.EXIT),
+		"TILE_BASE": generator_get_walls_base(),
+		"TILE_DEBRIS": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.FLOOR),
+	})
 
 func generator_room_subdivide(x1, y1, x2, y2):
 	randomize()
@@ -222,6 +231,13 @@ func generator_get_entrance() -> Vector2:
 func generator_get_exit() -> Vector2:
 	return TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.EXIT)[0]
 
+func generator_get_walls_base() -> Array:
+	var cells = TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.WALL)
+	var result = []
+	for cell in cells:
+		result.append_array(util_get_tile_in_directon(cell, [TILES_LOGIC.FLOOR], Vector2.DOWN))
+	return result
+
 func generator_room_flood_fill(tilemap:TileMap, tile:int, start_cell:Vector2, visited:Array):
 	var room = []
 	var stack = [start_cell]
@@ -353,6 +369,13 @@ func util_get_nearby_tiles_8(cell:Vector2, tiles:Array) -> Array:
 	if TILEMAP_LOGIC.get_cell(cell.x+1, cell.y-1) in tiles:  list.append(Vector2(cell.x+1, cell.y-1))
 	if TILEMAP_LOGIC.get_cell(cell.x-1, cell.y+1) in tiles:  list.append(Vector2(cell.x-1, cell.y+1))
 	if TILEMAP_LOGIC.get_cell(cell.x-1, cell.y-1) in tiles:  list.append(Vector2(cell.x-1, cell.y-1))
+	return list
+
+func util_get_tile_in_directon(cell:Vector2, tiles:Array, direction:Vector2) -> Array:
+	var list:Array = []
+	var pos:Vector2 = cell + direction
+	if TILEMAP_LOGIC.get_cellv(pos) in tiles:
+		list.append(pos)
 	return list
 
 func tilemap_get_cells_in_array(tilemap:TileMap, ids:Array) -> Array:

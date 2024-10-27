@@ -1,15 +1,18 @@
 extends Node2D
 
-onready var DEBUG_LABEL = preload("res://scenes/DebugLabel.tscn")
+onready var debug_label = preload("res://scenes/DebugLabel.tscn")
+onready var lib_fog = preload("res://scripts/level_fog.gd")
 
 onready var TILEMAP_LOGIC = $Logic
 onready var TILEMAP_DEBUG = $Debug
 onready var TILEMAP_DECOR = $Decor
+onready var TILEMAP_FOG = $Fog
 
 onready var MAP_WIDTH = TILEMAP_LOGIC.get_used_rect().size.x
 onready var MAP_HEIGHT = TILEMAP_LOGIC.get_used_rect().size.y
 onready var MIN_ROOM_SIZE = 2
 onready var MIN_SPLIT_SIZE = MIN_ROOM_SIZE * 2 + 1
+onready var MAX_VISION_DISTANCE = 4
 
 onready var TILES_LOGIC = {
 	EMPTY = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_EMPTY"),
@@ -18,8 +21,12 @@ onready var TILES_LOGIC = {
 	DOOR = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_DOOR"),
 	OBJECT = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_OBJECT"),
 	ENTRANCE = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_ENTRANCE"),
-	EXIT = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_EXIT")
+	EXIT = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_EXIT"),
 	}
+
+onready var TILES_FOG = {
+	FOG = TILEMAP_FOG.tile_set.find_tile_by_name("TILE_FOG")
+}
 
 onready var DIRECTIONS = [
 	Vector2.UP,
@@ -28,16 +35,32 @@ onready var DIRECTIONS = [
 	Vector2.RIGHT
 ]
 
+var _shadowcasting:ShadowCasting2D
+
 func _ready():
 	randomize()
-#	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
+	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
 	generator_start()
+	
+	_shadowcasting = lib_fog.new(
+		TILEMAP_LOGIC,
+		TILEMAP_FOG,
+		[TILES_LOGIC.WALL, TILES_LOGIC.DOOR],
+		TILES_LOGIC.FLOOR,
+		TILES_FOG.FOG
+	)
+	
+	update_fog(generator_get_entrance(), MAX_VISION_DISTANCE)
 	pass
 	
 func _process(delta):
 	if Input.is_action_just_pressed("ui_space"):
 		generator_start()
+		update_fog(generator_get_entrance(), MAX_VISION_DISTANCE)
 	pass
+
+func update_fog(center:Vector2, max_distance:int) -> void:
+	_shadowcasting.update(center, max_distance)
 
 func generator_start():
 	randomize()
@@ -49,7 +72,7 @@ func generator_start():
 	furnisher_place_object(TILEMAP_LOGIC, Vector2(2, 2))
 	furnisher_place_object(TILEMAP_LOGIC, Vector2(1, 1))
 	generator_add_passages(TILEMAP_LOGIC)
-#	debug_print_rooms()
+	
 	TILEMAP_DECOR.decorate_level({
 		"TILE_FLOOR": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.FLOOR),
 		"TILE_WALL": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.WALL),
@@ -57,6 +80,7 @@ func generator_start():
 		"TILE_EXIT": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.EXIT),
 		"TILE_BASE": generator_get_walls_base(),
 		"TILE_DEBRIS": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.FLOOR),
+		"TILE_DOOR_CLOSED": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.DOOR)
 	})
 
 func generator_room_subdivide(x1, y1, x2, y2):
@@ -121,7 +145,7 @@ func generator_clear_dead_ends(tilemap:TileMap, ids:Array, check_tile:int, set_t
 			if count >= 3:
 				tilemap.set_cellv(cell, set_tile)
 				completed = false
-			pass
+
 	pass
 
 func generator_remove_room_walls(tilemap:TileMap, tiles:Array) -> void:
@@ -377,6 +401,26 @@ func util_get_tile_in_directon(cell:Vector2, tiles:Array, direction:Vector2) -> 
 	if TILEMAP_LOGIC.get_cellv(pos) in tiles:
 		list.append(pos)
 	return list
+	
+func get_circle_outline(tilemap: TileMap, center: Vector2, radius: float) -> Array:
+	var outline = []
+	for r in range(0, int(ceil(radius * 0.5)) + 1):
+		var d = int(round(sqrt(radius * radius - r * r)))
+		
+		outline.append(Vector2(center.x - d, center.y + r))
+		outline.append(Vector2(center.x + d, center.y + r))
+		outline.append(Vector2(center.x - d, center.y - r))
+		outline.append(Vector2(center.x + d, center.y - r))
+		outline.append(Vector2(center.x + r, center.y - d))
+		outline.append(Vector2(center.x + r, center.y + d))
+		outline.append(Vector2(center.x - r, center.y - d))
+		outline.append(Vector2(center.x - r, center.y + d))
+		
+	return outline
+
+func draw_circle_outline(cells:Array) -> void:
+	for cell in cells:
+		TILEMAP_LOGIC.set_cellv(cell, TILES_LOGIC.DOOR)
 
 func tilemap_get_cells_in_array(tilemap:TileMap, ids:Array) -> Array:
 	var cells = []
@@ -393,7 +437,7 @@ func debug_print_rooms() -> void:
 
 func debug_add_cell_positions(cells:PoolVector2Array) -> void:
 	for cell in cells:
-		var label = DEBUG_LABEL.instance()
+		var label = debug_label.instance()
 		label.text = str(cell)
 		label.set_position(TILEMAP_DEBUG.map_to_world(cell))
 		TILEMAP_DEBUG.add_child(label)

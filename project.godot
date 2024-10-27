@@ -8,6 +8,16 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Node",
+"class": "ShadowCasting2D",
+"language": "GDScript",
+"path": "res://scripts/level_fog.gd"
+} ]
+_global_script_class_icons={
+"ShadowCasting2D": ""
+}
+
 [application]
 
 config/name="Terminus (v2.0 Dev)"

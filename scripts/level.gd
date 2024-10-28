@@ -1,7 +1,6 @@
 extends Node2D
 
 onready var debug_label = preload("res://scenes/DebugLabel.tscn")
-onready var lib_fog = preload("res://scripts/level_fog.gd")
 
 onready var TILEMAP_LOGIC = $Logic
 onready var TILEMAP_DEBUG = $Debug
@@ -12,7 +11,7 @@ onready var MAP_WIDTH = TILEMAP_LOGIC.get_used_rect().size.x
 onready var MAP_HEIGHT = TILEMAP_LOGIC.get_used_rect().size.y
 onready var MIN_ROOM_SIZE = 2
 onready var MIN_SPLIT_SIZE = MIN_ROOM_SIZE * 2 + 1
-onready var MAX_VISION_DISTANCE = 4
+onready var MAX_VISION_DISTANCE = 12
 
 onready var TILES_LOGIC = {
 	EMPTY = TILEMAP_LOGIC.tile_set.find_tile_by_name("TILE_EMPTY"),
@@ -35,6 +34,9 @@ onready var DIRECTIONS = [
 	Vector2.RIGHT
 ]
 
+
+var object_big_cells = []
+var object_small_cells = []
 var _shadowcasting:ShadowCasting2D
 
 func _ready():
@@ -42,7 +44,7 @@ func _ready():
 	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
 	generator_start()
 	
-	_shadowcasting = lib_fog.new(
+	_shadowcasting = ShadowCasting2D.new(
 		TILEMAP_LOGIC,
 		TILEMAP_FOG,
 		[TILES_LOGIC.WALL, TILES_LOGIC.DOOR],
@@ -64,13 +66,15 @@ func update_fog(center:Vector2, max_distance:int) -> void:
 
 func generator_start():
 	randomize()
+	object_big_cells.clear()
+	object_small_cells.clear()
 	generator_clear_level()
 	generator_room_subdivide(1, 1, MAP_WIDTH - 2, MAP_HEIGHT - 2)
 	generator_clear_dead_ends(TILEMAP_LOGIC, [TILES_LOGIC.DOOR, TILES_LOGIC.WALL], TILES_LOGIC.FLOOR, TILES_LOGIC.FLOOR)
 	generator_fill_one_way_rooms(TILEMAP_LOGIC, TILES_LOGIC.FLOOR, TILES_LOGIC.WALL)
 	generator_remove_room_walls(TILEMAP_LOGIC, [TILES_LOGIC.WALL, TILES_LOGIC.DOOR])
-	furnisher_place_object(TILEMAP_LOGIC, Vector2(2, 2))
-	furnisher_place_object(TILEMAP_LOGIC, Vector2(1, 1))
+	object_big_cells = furnisher_place_object(TILEMAP_LOGIC, Vector2(2, 2), 3)
+	object_small_cells = furnisher_place_object(TILEMAP_LOGIC, Vector2(1, 1), 5)
 	generator_add_passages(TILEMAP_LOGIC)
 	
 	TILEMAP_DECOR.decorate_level({
@@ -80,7 +84,9 @@ func generator_start():
 		"TILE_EXIT": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.EXIT),
 		"TILE_BASE": generator_get_walls_base(),
 		"TILE_DEBRIS": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.FLOOR),
-		"TILE_DOOR_CLOSED": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.DOOR)
+		"TILE_DOOR_CLOSED": TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.DOOR),
+		"TILE_OBJECT_BIG": object_big_cells,
+		"TILE_OBJECT_SMALL": object_small_cells
 	})
 
 func generator_room_subdivide(x1, y1, x2, y2):
@@ -315,15 +321,23 @@ func generator_clear_level() -> void:
 			TILEMAP_LOGIC.set_cell(width, height, TILES_LOGIC.FLOOR)
 	pass
 
-func furnisher_place_object(tilemap:TileMap, size:Vector2) -> void:
+func furnisher_place_object(tilemap:TileMap, size:Vector2, max_count:int) -> Array:
 	randomize()
-	var cells = furnisher_get_free_space(tilemap, size)
-	if cells.size() != 0:
-		cells.shuffle()
-		var cell = cells.pick_random()
-		for x in range(size.x):
-			for y in range(size.y):
-				tilemap.set_cell(cell.x + x, cell.y + y, TILES_LOGIC.OBJECT)
+	var result = []
+	
+	for i in (randi() % max_count):
+		var cells = furnisher_get_free_space(tilemap, size)
+		if cells.size() != 0:
+			cells.shuffle()
+			var cell = cells.pick_random()
+			cells.erase(cell)
+			result.append(cell)
+
+			for x in range(size.x):
+				for y in range(size.y):
+					tilemap.set_cell(cell.x + x, cell.y + y, TILES_LOGIC.OBJECT)
+
+	return result
 
 func furnisher_get_free_space(tilemap:TileMap, size:Vector2) -> Array:
 	var result = []

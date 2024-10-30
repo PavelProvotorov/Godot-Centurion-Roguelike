@@ -1,6 +1,7 @@
 extends Node2D
 
 onready var debug_label = preload("res://scenes/DebugLabel.tscn")
+onready var debug_player = preload("res://mobs/Player.tscn")
 
 onready var TILEMAP_LOGIC = $Logic
 onready var TILEMAP_DEBUG = $Debug
@@ -38,31 +39,26 @@ onready var DIRECTIONS = [
 var object_big_cells = []
 var object_small_cells = []
 var _shadowcasting:ShadowCasting2D
+var _pathfinding:PathFinding2D
 
 func _ready():
 	randomize()
 	debug_add_cell_positions(TILEMAP_LOGIC.get_used_cells())
 	generator_start()
-	
-	_shadowcasting = ShadowCasting2D.new(
-		TILEMAP_LOGIC,
-		TILEMAP_FOG,
-		[TILES_LOGIC.WALL, TILES_LOGIC.DOOR],
-		TILES_LOGIC.FLOOR,
-		TILES_FOG.FOG
-	)
-	
-	update_fog(generator_get_entrance(), MAX_VISION_DISTANCE)
 	pass
 	
 func _process(delta):
 	if Input.is_action_just_pressed("ui_space"):
 		generator_start()
-		update_fog(generator_get_entrance(), MAX_VISION_DISTANCE)
 	pass
 
 func update_fog(center:Vector2, max_distance:int) -> void:
 	_shadowcasting.update(center, max_distance)
+
+func add_player():
+	var player = debug_player.instance()
+	player.set_position(TILEMAP_LOGIC.map_to_world(generator_get_entrance()))
+	TILEMAP_LOGIC.add_child(player)
 
 func generator_start():
 	randomize()
@@ -88,6 +84,28 @@ func generator_start():
 		"TILE_OBJECT_BIG": object_big_cells,
 		"TILE_OBJECT_SMALL": object_small_cells
 	})
+	
+	_shadowcasting = ShadowCasting2D.new(
+		TILEMAP_LOGIC,
+		TILEMAP_FOG,
+		[TILES_LOGIC.WALL, TILES_LOGIC.DOOR],
+		TILES_LOGIC.FLOOR,
+		TILES_FOG.FOG
+	)
+	
+	_pathfinding = PathFinding2D.new(
+		tilemap_get_cells_in_array(TILEMAP_LOGIC, [
+			TILES_LOGIC.ENTRANCE,
+			TILES_LOGIC.FLOOR,
+			TILES_LOGIC.EXIT,
+			TILES_LOGIC.DOOR
+		])
+	)
+	
+#	add_player()
+	update_fog(generator_get_entrance(), MAX_VISION_DISTANCE)
+#	_pathfinding.disable_points(TILEMAP_LOGIC.get_used_cells_by_id(TILES_LOGIC.DOOR))
+	print(_pathfinding.get_path(generator_get_entrance(), generator_get_exit()))
 
 func generator_room_subdivide(x1, y1, x2, y2):
 	randomize()

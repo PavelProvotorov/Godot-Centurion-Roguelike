@@ -9,12 +9,18 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "AStar2D",
+"class": "PathFinding2D",
+"language": "GDScript",
+"path": "res://scripts/level_pathfinding.gd"
+}, {
 "base": "Node",
 "class": "ShadowCasting2D",
 "language": "GDScript",
-"path": "res://scripts/level_fog.gd"
+"path": "res://scripts/level_shadowcasting.gd"
 } ]
 _global_script_class_icons={
+"PathFinding2D": "",
 "ShadowCasting2D": ""
 }
 

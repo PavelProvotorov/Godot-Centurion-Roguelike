@@ -1,41 +1,43 @@
-extends TileMap
+extends Node
+class_name Decorator2D
 
-onready var TILESET = self.tile_set
-onready var TILEMAP_BASE = $Base
-onready var TILEMAP_DEBRIS = $Debris
+var tileset
+var _tilemap_deco 
+var _tilemap_base
+var _tilemap_debris
 
-onready var TILES_DECO:Dictionary = {
-	FLOOR = TILESET.find_tile_by_name("TILE_FLOOR"),
-	WALL = TILESET.find_tile_by_name("TILE_WALL"),
-	BASE = TILESET.find_tile_by_name("TILE_BASE "),
-	ENTRANCE = TILESET.find_tile_by_name("TILE_ENTRANCE"),
-	EXIT = TILESET.find_tile_by_name("TILE_EXIT")
-	}
+func _init(deco:TileMap, base:TileMap, debris:TileMap):
+	self._tilemap_deco = deco
+	self._tilemap_base = base
+	self._tilemap_debris = debris
+	self.tileset = deco.tile_set
 
-func _ready():
-	pass
+func clear_decorations() -> void:
+	_tilemap_deco.clear()
+	_tilemap_base.clear()
+	_tilemap_debris.clear()
 
 func decorate_level(data:Dictionary):
 	clear_decorations()
 	for key in data:
 		var cells = data.get(key)
-		var atlas_id = TILESET.find_tile_by_name(key)
-		var tiles = utility_atlas_get_tiles(TILESET, key, atlas_id)
+		var atlas_id = tileset.find_tile_by_name(key)
+		var tiles = utility_atlas_get_tiles(tileset, key, atlas_id)
 		
 		match key:
 			"TILE_BASE":
-				tilemap_set_random_texture(TILEMAP_BASE, cells, tiles, atlas_id)
+				tilemap_set_random_texture(_tilemap_base, cells, tiles, atlas_id)
 			"TILE_DEBRIS":
-				tilemap_set_random_texture(TILEMAP_DEBRIS, cells, tiles, atlas_id)
+				tilemap_set_random_texture(_tilemap_debris, cells, tiles, atlas_id)
 			_:
-				tilemap_set_random_texture(self, cells, tiles, atlas_id)
+				tilemap_set_random_texture(_tilemap_deco, cells, tiles, atlas_id)
 		pass
 	pass
 
-func clear_decorations() -> void:
-	self.clear()
-	TILEMAP_BASE.clear()
-	TILEMAP_DEBRIS.clear()
+func update_decoration(key:String, pos:Array) -> void:
+	var atlas_id = tileset.find_tile_by_name(key)
+	var tiles = utility_atlas_get_tiles(tileset, key, atlas_id)
+	tilemap_set_random_texture(_tilemap_deco, pos, tiles, atlas_id)
 
 func tilemap_set_random_texture(tilemap:TileMap, cells:Array, tiles:Array, atlas_id:int) -> void:
 	randomize()

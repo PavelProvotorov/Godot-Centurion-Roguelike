@@ -5,8 +5,8 @@ var max_distance:int = 0
 var center:Vector2 = Vector2(0, 0)
 var visible_cells:Array = []
 
-var tilemap_logic:TileMap
-var tilemap_fog:TileMap
+var _tilemap_logic:TileMap
+var _tilemap_fog:TileMap
 var tiles_block:Array
 var tile_floor:int
 var tile_fog:int
@@ -19,18 +19,29 @@ func _init(
 	tile_fog:int
 	):
 	
-	self.tilemap_logic = tilemap_logic
-	self.tilemap_fog = tilemap_fog
+	self._tilemap_logic = tilemap_logic
+	self._tilemap_fog = tilemap_fog
 	self.tiles_block = tiles_block
 	self.tile_floor = tile_floor
 	self.tile_fog = tile_fog
+	
+	reset_fog()
+
+func reset_fog():
+	var rect = _tilemap_fog.get_used_rect()
+	var rect_start = Vector2(rect.position.x , rect.position.y)
+	var rect_end = Vector2(rect.end.x, rect.end.y)
+	
+	for width in range(int(rect_start.x), int(rect_end.x)):
+		for height in range(int(rect_start.y), int(rect_end.y)):
+			_tilemap_fog.set_cell(width, height, tile_fog)
 
 func update(center:Vector2, max_distance:int):
 	self.center = center
 	self.max_distance = max_distance
 	
 	for cell in visible_cells:
-		tilemap_fog.set_cellv(cell, tile_fog)
+		_tilemap_fog.set_cellv(cell, tile_fog)
 	visible_cells.clear()
 	
 	shadow_casting(center)
@@ -49,7 +60,7 @@ func reveal(tile : Vector2, quadrant : Quadrant):
 func mark_visible(tile : Vector2):
 	if distance(center, tile) > max_distance:
 		return
-	tilemap_fog.set_cellv(tile, -1)
+	_tilemap_fog.set_cellv(tile, -1)
 	visible_cells.append(tile)
 
 func is_wall(tile, quadrant : Quadrant) -> bool:
@@ -63,7 +74,7 @@ func is_floor(tile, quadrant : Quadrant) -> bool:
 	return not is_blocking(result)
 
 func is_blocking(tile : Vector2) -> bool:
-	return tiles_block.has(tilemap_logic.get_cellv(tile))
+	return tiles_block.has(_tilemap_logic.get_cellv(tile))
 
 func slope(tile : Vector2) -> float:
 	var row_depth = tile.x

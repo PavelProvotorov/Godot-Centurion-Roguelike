@@ -4,5 +4,14 @@
 
 [node name="Main" type="Node2D"]
 
-[node name="Level" parent="." instance=ExtResource( 1 )]
-position = Vector2( 48, 0 )
+[node name="ViewportContainer" type="ViewportContainer" parent="."]
+margin_left = 48.0
+margin_right = 88.0
+margin_bottom = 40.0
+
+[node name="Viewport" type="Viewport" parent="ViewportContainer"]
+size = Vector2( 160, 144 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Level" parent="ViewportContainer/Viewport" groups=["LEVEL"] instance=ExtResource( 1 )]

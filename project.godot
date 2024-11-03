@@ -9,6 +9,16 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node",
+"class": "Decorator2D",
+"language": "GDScript",
+"path": "res://scripts/level_decorator.gd"
+}, {
+"base": "Node",
+"class": "Generator2D",
+"language": "GDScript",
+"path": "res://scripts/level_generator.gd"
+}, {
 "base": "AStar2D",
 "class": "PathFinding2D",
 "language": "GDScript",
@@ -20,6 +30,8 @@ _global_script_classes=[ {
 "path": "res://scripts/level_shadowcasting.gd"
 } ]
 _global_script_class_icons={
+"Decorator2D": "",
+"Generator2D": "",
 "PathFinding2D": "",
 "ShadowCasting2D": ""
 }
@@ -29,6 +41,10 @@ _global_script_class_icons={
 config/name="Terminus (v2.0 Dev)"
 run/main_scene="res://scenes/Main.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+Events="*res://scripts/events.gd"
 
 [display]
 

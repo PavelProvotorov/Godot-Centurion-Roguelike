@@ -28,12 +28,18 @@ _global_script_classes=[ {
 "class": "ShadowCasting2D",
 "language": "GDScript",
 "path": "res://scripts/level_shadowcasting.gd"
+}, {
+"base": "Node",
+"class": "TweenAnimation2D",
+"language": "GDScript",
+"path": "res://scripts/animation.gd"
 } ]
 _global_script_class_icons={
 "Decorator2D": "",
 "Generator2D": "",
 "PathFinding2D": "",
-"ShadowCasting2D": ""
+"ShadowCasting2D": "",
+"TweenAnimation2D": ""
 }
 
 [application]

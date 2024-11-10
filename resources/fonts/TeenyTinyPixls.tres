@@ -3,5 +3,5 @@
 [ext_resource path="res://Resources/fonts/TeenyTinyPixls-o2zo.ttf" type="DynamicFontData" id=1]
 
 [resource]
-size = 1
+size = 5
 font_data = ExtResource( 1 )

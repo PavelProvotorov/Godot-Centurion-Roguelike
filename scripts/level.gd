@@ -118,7 +118,7 @@ func _on_player_moved(pos:Vector2, distance:int) -> void:
 
 func debug_print_rooms() -> void:
 	print("---------------------")
-	var rooms = _generator.generator_get_rooms(_tilemap_logic, TILES.FLOOR)
+	var rooms = _generator.generator_get_rooms(TILES.FLOOR)
 	for room in rooms.size():
 		print(room, ": ", rooms[room])
 

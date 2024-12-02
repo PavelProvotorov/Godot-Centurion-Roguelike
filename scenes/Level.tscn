@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://resources/tilesets/tileset_logic.tres" type="TileSet" id=1]
 [ext_resource path="res://scripts/level.gd" type="Script" id=2]
+[ext_resource path="res://assets/level_bounds_fog.png" type="Texture" id=3]
 [ext_resource path="res://resources/tilesets/tileset_deco_1.tres" type="TileSet" id=4]
 [ext_resource path="res://resources/tilesets/tileset_fog.tres" type="TileSet" id=5]
 
@@ -31,7 +32,7 @@ cell_size = Vector2( 8, 8 )
 format = 1
 
 [node name="Fog" type="TileMap" parent="."]
-z_index = 3
+z_index = 5
 tile_set = ExtResource( 5 )
 cell_size = Vector2( 8, 8 )
 format = 1
@@ -42,3 +43,7 @@ visible = false
 z_index = 3
 cell_size = Vector2( 8, 8 )
 format = 1
+
+[node name="Bounds" type="Sprite" parent="."]
+position = Vector2( 128, 72 )
+texture = ExtResource( 3 )

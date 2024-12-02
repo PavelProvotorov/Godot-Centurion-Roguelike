@@ -27,7 +27,7 @@ func _init(
 	
 	reset_fog()
 
-func reset_fog():
+func reset_fog() -> void:
 	var rect = _tilemap_fog.get_used_rect()
 	var rect_start = Vector2(rect.position.x , rect.position.y)
 	var rect_end = Vector2(rect.end.x, rect.end.y)
@@ -36,7 +36,7 @@ func reset_fog():
 		for height in range(int(rect_start.y), int(rect_end.y)):
 			_tilemap_fog.set_cell(width, height, tile_fog)
 
-func update(center:Vector2, max_distance:int):
+func update(center:Vector2, max_distance:int) -> Array:
 	self.center = center
 	self.max_distance = max_distance
 	
@@ -45,19 +45,20 @@ func update(center:Vector2, max_distance:int):
 	visible_cells.clear()
 	
 	shadow_casting(center)
+	return visible_cells
 
-func shadow_casting(origin : Vector2):
+func shadow_casting(origin : Vector2) -> void:
 	mark_visible(origin)
 	for i in range(4):
 		var quadrant = Quadrant.new(i, origin)
 		var first_row = Row.new(1, -1, 1, max_distance)
 		scan(first_row, quadrant)
 
-func reveal(tile : Vector2, quadrant : Quadrant):
+func reveal(tile : Vector2, quadrant : Quadrant) -> void:
 	var result = quadrant.transform(tile)
 	mark_visible(result)
 
-func mark_visible(tile : Vector2):
+func mark_visible(tile : Vector2) -> void:
 	if distance(center, tile) > max_distance:
 		return
 	_tilemap_fog.set_cellv(tile, -1)
@@ -85,7 +86,7 @@ func is_symmetric(row : Row, tile : Vector2) -> bool:
 	var col = tile.y
 	return col >= row.depth * row.start_slope and col <= row.depth * row.end_slope
 
-func scan(row : Row, quadrant : Quadrant):
+func scan(row : Row, quadrant : Quadrant) -> void:
 	if row.depth > max_distance:
 		return
 	var prev_tile = null
@@ -107,7 +108,7 @@ class Quadrant:
 	var ox
 	var oy
 
-	func _init(cardinal, origin):
+	func _init(cardinal, origin) -> void:
 		self.cardinal = cardinal
 		self.ox = origin.x
 		self.oy = origin.y

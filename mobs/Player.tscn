@@ -6,8 +6,8 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 4, 4 )
 
-[node name="Player" type="KinematicBody2D"]
-z_index = 5
+[node name="Player" type="KinematicBody2D" groups=["PLAYER"]]
+z_index = 4
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -28,5 +28,6 @@ cast_to = Vector2( 0, 8 )
 position = Vector2( 4, 4 )
 zoom = Vector2( 0.5, 0.5 )
 process_mode = 0
+limit_smoothed = true
 smoothing_enabled = true
 smoothing_speed = 10.0

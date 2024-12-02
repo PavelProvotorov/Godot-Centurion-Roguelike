@@ -12,8 +12,14 @@ func animation_move_to(pos:Vector2) -> void:
 	tween.tween_property(parent, 'position', pos, 1.0/tween_speed).set_trans(Tween.EASE_IN_OUT)
 	tween.connect("finished", parent, "_on_animation_move_finished", [tween])
 
-func animation_shoot(start:Vector2, finish:Vector2) -> void:
+func animation_ranged(start:Vector2, finish:Vector2) -> void:
 	var tween:SceneTreeTween = parent.create_tween()
 	tween.tween_property(parent, 'position', finish, 0.8/tween_speed)
 	tween.tween_property(parent, 'position', start, 1.0/tween_speed).set_trans(Tween.EASE_OUT)
-	tween.connect("finished", parent, "_on_animation_shot_finished", [tween])
+	tween.connect("finished", parent, "_on_animation_ranged_finished", [tween])
+
+func animation_melee(start:Vector2, finish:Vector2) -> void:
+	var tween:SceneTreeTween = parent.create_tween()
+	tween.tween_property(parent, 'position', finish, 0.8/tween_speed)
+	tween.tween_property(parent, 'position', start, 1.0/tween_speed).set_trans(Tween.EASE_OUT)
+	tween.connect("finished", parent, "_on_animation_melee_finished", [tween])

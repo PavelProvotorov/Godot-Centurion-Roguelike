@@ -2,13 +2,15 @@ extends Node2D
 
 onready var debug_label = preload("res://scenes/DebugLabel.tscn")
 onready var debug_player = preload("res://mobs/Player.tscn")
+onready var debug_grunt = preload("res://mobs/Grunt.tscn")
 
-onready var _tilemap_logic = $Logic
-onready var _tilemap_debug = $Debug
-onready var _tilemap_decor = $Decor
-onready var _tilemap_debris = $Debris
-onready var _tilemap_base = $Base
-onready var _tilemap_fog = $Fog
+onready var _tree:SceneTree = get_tree()
+onready var _tilemap_logic:TileMap = $Logic
+onready var _tilemap_debug:TileMap = $Debug
+onready var _tilemap_decor:TileMap = $Decor
+onready var _tilemap_debris:TileMap = $Debris
+onready var _tilemap_base:TileMap = $Base
+onready var _tilemap_fog:TileMap = $Fog
 onready var level_rect = _tilemap_logic.get_used_rect()
 
 onready var TILES = {
@@ -22,6 +24,7 @@ onready var TILES = {
 	FOG = _tilemap_fog.tile_set.find_tile_by_name("TILE_FOG")
 	}
 
+onready var _queue:Queue = Queue.new()
 var _shadowcasting:ShadowCasting2D
 var _pathfinding:PathFinding2D
 var _generator:Generator2D
@@ -29,12 +32,15 @@ var _decorator:Decorator2D
 
 func _ready():
 	randomize()
+	Events.connect("enemy_moved", self, "_on_enemy_moved")
 	Events.connect("player_moved", self, "_on_player_moved")
 	Events.connect("level_door_open", self, "_on_level_door_open")
+	Events.connect("end_turn", self, "_on_end_turn")
 	
 	debug_add_cell_positions(_tilemap_logic.get_used_cells())
 	add_player()
 	generate_level()
+	add_enemies()
 	
 func _process(delta):
 	if Input.is_action_just_pressed("ui_space"):
@@ -92,6 +98,16 @@ func add_player():
 	player.set_position(Vector2(0, 0))
 	_tilemap_logic.add_child(player)
 
+func add_enemies():
+	var free_cells = _tilemap_logic.get_used_cells_by_id(TILES.FLOOR)
+	for idx in range(3):
+		var cell = free_cells.pick_random()
+		free_cells.erase(cell)
+		
+		var enemy = debug_grunt.instance()
+		enemy.set_position(_tilemap_logic.map_to_world(cell))
+		_tilemap_logic.add_child(enemy)
+
 func get_tile_position_name(pos:Vector2) -> String:
 	var pos_tilemap = _tilemap_logic.world_to_map(pos)
 	return TILES.find_key(_tilemap_logic.get_cellv(pos_tilemap))
@@ -110,11 +126,34 @@ func _on_level_door_open(entity_pos:Vector2, door_pos:Vector2, distance:int) -> 
 	_decorator.update_decoration('TILE_DOOR_OPEN', [door_pos_tilemap])
 	_pathfinding.enable_points([door_pos_tilemap])
 	_shadowcasting.update(entity_pos_tilemap, distance)
+	
+func find_path(start:Vector2, end:Vector2) -> Array:
+	return _pathfinding.get_path(
+		_tilemap_logic.world_to_map(start),
+		_tilemap_logic.world_to_map(end)
+	)
 
+func is_fog_cell(cell:Vector2) -> bool:
+	return _tilemap_fog.get_cellv(cell) == TILES.FOG
+	
 func _on_player_moved(pos:Vector2, distance:int) -> void:
 	var pos_tilemap = _tilemap_logic.world_to_map(pos)
-	print("Player moved: ", pos_tilemap, " > ", distance)
-	_shadowcasting.update(pos_tilemap, distance)
+#	print("Player moved: ", pos_tilemap, " > ", distance)
+	var cells = _shadowcasting.update(pos_tilemap, distance)
+	Events.emit_signal("level_fog_updated", cells)
+
+func _on_enemy_moved(prev_pos:Vector2, new_pos:Vector2) -> void:
+	_pathfinding.disable_points([
+		_tilemap_logic.world_to_map(new_pos)
+	])
+	_pathfinding.enable_points([
+		_tilemap_logic.world_to_map(prev_pos)
+	])
+
+func _on_end_turn(node:Node) -> void:
+	print("----------------------------------")
+	print("Turn Ended By: ", node)
+	_queue.process(_tree, node)
 
 func debug_print_rooms() -> void:
 	print("---------------------")

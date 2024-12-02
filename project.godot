@@ -14,6 +14,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://scripts/level_decorator.gd"
 }, {
+"base": "KinematicBody2D",
+"class": "Entity2D",
+"language": "GDScript",
+"path": "res://scripts/entity.gd"
+}, {
 "base": "Node",
 "class": "Generator2D",
 "language": "GDScript",
@@ -23,6 +28,11 @@ _global_script_classes=[ {
 "class": "PathFinding2D",
 "language": "GDScript",
 "path": "res://scripts/level_pathfinding.gd"
+}, {
+"base": "Node",
+"class": "Queue",
+"language": "GDScript",
+"path": "res://scripts/level_queue.gd"
 }, {
 "base": "Node",
 "class": "ShadowCasting2D",
@@ -36,8 +46,10 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "Decorator2D": "",
+"Entity2D": "",
 "Generator2D": "",
 "PathFinding2D": "",
+"Queue": "",
 "ShadowCasting2D": "",
 "TweenAnimation2D": ""
 }

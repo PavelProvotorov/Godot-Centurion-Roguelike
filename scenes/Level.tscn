@@ -6,10 +6,10 @@
 [ext_resource path="res://resources/tilesets/tileset_deco_1.tres" type="TileSet" id=4]
 [ext_resource path="res://resources/tilesets/tileset_fog.tres" type="TileSet" id=5]
 
-[node name="Level" type="Node2D"]
+[node name="Level" type="Node2D" groups=["LEVEL"]]
 script = ExtResource( 2 )
 
-[node name="Logic" type="TileMap" parent="."]
+[node name="Logic" type="TileMap" parent="." groups=["LEVEL"]]
 tile_set = ExtResource( 1 )
 cell_size = Vector2( 8, 8 )
 format = 1
@@ -32,6 +32,7 @@ cell_size = Vector2( 8, 8 )
 format = 1
 
 [node name="Fog" type="TileMap" parent="."]
+visible = false
 z_index = 5
 tile_set = ExtResource( 5 )
 cell_size = Vector2( 8, 8 )

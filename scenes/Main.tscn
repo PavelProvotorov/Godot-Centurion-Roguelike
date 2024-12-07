@@ -13,4 +13,4 @@ size = Vector2( 256, 144 )
 handle_input_locally = false
 render_target_update_mode = 3
 
-[node name="Level" parent="ViewportContainer/Viewport" groups=["LEVEL"] instance=ExtResource( 1 )]
+[node name="Level" parent="ViewportContainer/Viewport" instance=ExtResource( 1 )]
